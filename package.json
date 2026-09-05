@@ -1,0 +1,17 @@
+{
+  "name": "cinematic-launchpad",
+  "version": "1.0.0",
+  "description": "A premium cinematic project launch experience with admin panels.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "uuid": "^11.0.3"
+  }
+}

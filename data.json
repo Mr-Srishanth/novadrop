@@ -1,0 +1,30 @@
+{
+  "projects": [
+    {
+      "id": "6b8aa9b8-bbae-4dd9-9a01-0c1736df6cb2",
+      "name": "SURPRISE",
+      "slug": "surprise",
+      "tagline": "Something new is coming.",
+      "launch_at": "2026-09-08T00:00",
+      "timezone": "Asia/Kolkata",
+      "project_url": "https://techy-srishanth-portfolio.vercel.app/",
+      "accent_color": "#00e1ff",
+      "reveal_text": "THE WAIT IS OVER.",
+      "cta_text": "ENTER PROJECT →",
+      "status": "Coming Soon",
+      "logo": "",
+      "hero_image": "",
+      "created_at": "2026-08-28T18:12:43.986Z",
+      "updated_at": "2026-08-29T13:47:08.279Z"
+    }
+  ],
+  "site_settings": {
+    "site_name": "NOVA // DROP",
+    "hero_text": "SOMETHING BIG IS COMING.",
+    "hero_subtitle": "You weren't supposed to find this yet.",
+    "archive_enabled": true,
+    "cursor_enabled": true,
+    "particles_enabled": true,
+    "easter_eggs_enabled": true
+  }
+}

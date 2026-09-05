@@ -1,0 +1,360 @@
+<%- include('../partials/header') %>
+
+<main class="min-h-screen p-6 md:p-12 relative z-10 max-w-3xl mx-auto w-full space-y-8">
+  
+  <header class="flex justify-between items-center w-full border-b border-white/5 pb-4">
+    <div class="space-y-1">
+      <span class="text-[9px] font-mono tracking-widest text-accent uppercase">
+        <%= project ? 'EDIT DEPLOYMENT SPEC' : 'INITIALIZE DEPLOYMENT SPEC' %>
+      </span>
+      <h1 class="text-xl md:text-2xl font-black uppercase text-white tracking-widest font-title">
+        <%= project ? 'EDIT DROP' : 'NEW DROP' %>
+      </h1>
+    </div>
+    <a href="/admin/dashboard" class="text-xs font-mono text-gray-400 hover:text-accent uppercase">[ CANCEL ]</a>
+  </header>
+
+  <div class="thin-border p-8 bg-black/40">
+    <form action="<%= project ? `/admin/projects/${project.id}/edit` : '/admin/projects/new' %>" method="POST" class="space-y-6 text-xs font-mono">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">PROJECT NAME</label>
+          <input type="text" name="name" value="<%= project ? project.name : '' %>" required placeholder="e.g. Project Nova" class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">ACCENT COLOR (HEX)</label>
+          <input type="color" name="accent_color" value="<%= project ? project.accent_color : '#00f3ff' %>" class="w-full h-11 bg-black/60 border border-white/10 p-1 text-white focus:outline-none">
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-[10px] text-gray-400 uppercase tracking-wider">TAGLINE</label>
+        <input type="text" name="tagline" value="<%= project ? project.tagline : '' %>" required placeholder="e.g. Something new is coming." class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">LAUNCH DATE & TIME</label>
+          <!-- Using datetime-local format -->
+          <input type="datetime-local" name="launch_at" value="<%= project ? project.launch_at : '' %>" required class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">TIMEZONE</label>
+          <input type="text" name="timezone" value="<%= project ? project.timezone : 'Asia/Kolkata' %>" required placeholder="e.g. Asia/Kolkata" class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">STATUS</label>
+          <select name="status" class="w-full bg-black border border-white/10 p-3 text-white focus:outline-none">
+            <option value="Draft" <%= project && project.status === 'Draft' ? 'selected' : '' %>>Draft</option>
+            <option value="Coming Soon" <%= (!project || project.status === 'Coming Soon') ? 'selected' : '' %>>Coming Soon</option>
+            <option value="Live" <%= project && project.status === 'Live' ? 'selected' : '' %>>Live</option>
+            <option value="Archived" <%= project && project.status === 'Archived' ? 'selected' : '' %>>Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-[10px] text-gray-400 uppercase tracking-wider">PROJECT LINK</label>
+        <input type="url" name="project_url" value="<%= project ? project.project_url : '' %>" required placeholder="https://example.com" class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">REVEAL TEXT</label>
+          <input type="text" name="reveal_text" value="<%= project ? project.reveal_text : 'THE WAIT IS OVER.' %>" placeholder="e.g. THE WAIT IS OVER." class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[10px] text-gray-400 uppercase tracking-wider">CTA TEXT</label>
+          <input type="text" name="cta_text" value="<%= project ? project.cta_text : 'ENTER PROJECT →' %>" placeholder="e.g. ENTER PROJECT →" class="w-full bg-black/60 border border-white/10 p-3 text-white focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Optional fields (Drag & Drop Uploader) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-white/5 pt-4">
+        
+        <!-- LOGO UPLOAD -->
+        <div class="space-y-2">
+          <label class="block text-[10px] text-gray-500 uppercase tracking-wider">LOGO (OPTIONAL)</label>
+          <input type="hidden" name="logo" id="logo-input" value="<%= project ? project.logo : '' %>">
+          
+          <div id="logo-dropzone" class="relative border-2 border-dashed border-white/10 hover:border-accent/40 bg-black/40 rounded-sm p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[140px] hover:shadow-[0_0_20px_rgba(255,255,255,0.02)]">
+            <input type="file" id="logo-file" class="hidden" accept=".png,.jpg,.jpeg,.webp,.svg">
+            
+            <!-- State 1: Prompt -->
+            <div id="logo-prompt" class="space-y-2">
+              <div class="text-xl text-gray-500">↑</div>
+              <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider label-text">DROP LOGO HERE</div>
+              <div class="text-[9px] text-gray-500">or click to choose a file</div>
+              <div class="text-[8px] text-gray-600 uppercase tracking-widest mt-1">PNG • JPG • WEBP • SVG</div>
+            </div>
+            
+            <!-- State 2: Preview Card -->
+            <div id="logo-preview-card" class="hidden flex flex-col items-center space-y-2 w-full">
+              <div class="text-[9px] text-gray-500 font-mono">[ IMAGE PREVIEW ]</div>
+              <img id="logo-preview-img" src="" class="max-h-16 object-contain border border-white/10 p-1 bg-black/20" alt="Logo preview">
+              <div class="text-[9px] text-gray-400 font-mono truncate max-w-[200px]" id="logo-filename">filename.png</div>
+              <div class="text-[8px] text-gray-500 font-mono" id="logo-filesize">N/A</div>
+              <div class="text-[9px] font-bold text-accent font-mono tracking-widest uppercase">STORED</div>
+              <div class="flex gap-4 pt-1">
+                <button type="button" id="logo-replace-btn" class="text-[9px] text-accent hover:underline uppercase">[ REPLACE ]</button>
+                <button type="button" id="logo-remove-btn" class="text-[9px] text-red-500 hover:underline uppercase">[ REMOVE ]</button>
+              </div>
+            </div>
+          </div>
+          <div id="logo-error" class="hidden text-[9px] font-mono text-red-400 mt-1 uppercase"></div>
+        </div>
+
+        <!-- HERO IMAGE UPLOAD -->
+        <div class="space-y-2">
+          <label class="block text-[10px] text-gray-500 uppercase tracking-wider">HERO IMAGE (OPTIONAL)</label>
+          <input type="hidden" name="hero_image" id="hero-input" value="<%= project ? project.hero_image : '' %>">
+          
+          <div id="hero-dropzone" class="relative border-2 border-dashed border-white/10 hover:border-accent/40 bg-black/40 rounded-sm p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[140px] hover:shadow-[0_0_20px_rgba(255,255,255,0.02)]">
+            <input type="file" id="hero-file" class="hidden" accept=".png,.jpg,.jpeg,.webp">
+            
+            <!-- State 1: Prompt -->
+            <div id="hero-prompt" class="space-y-2">
+              <div class="text-xl text-gray-500">↑</div>
+              <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider label-text">DROP HERO IMAGE HERE</div>
+              <div class="text-[9px] text-gray-500">or click to choose a file</div>
+              <div class="text-[8px] text-gray-600 uppercase tracking-widest mt-1">JPG • PNG • WEBP</div>
+            </div>
+            
+            <!-- State 2: Preview Card -->
+            <div id="hero-preview-card" class="hidden flex flex-col items-center space-y-2 w-full">
+              <div class="text-[9px] text-gray-500 font-mono">[ IMAGE PREVIEW ]</div>
+              <img id="hero-preview-img" src="" class="max-h-16 object-contain border border-white/10 p-1 bg-black/20" alt="Hero preview">
+              <div class="text-[9px] text-gray-400 font-mono truncate max-w-[200px]" id="hero-filename">filename.png</div>
+              <div class="text-[8px] text-gray-500 font-mono" id="hero-filesize">N/A</div>
+              <div class="text-[9px] font-bold text-accent font-mono tracking-widest uppercase">STORED</div>
+              <div class="flex gap-4 pt-1">
+                <button type="button" id="hero-replace-btn" class="text-[9px] text-accent hover:underline uppercase">[ REPLACE ]</button>
+                <button type="button" id="hero-remove-btn" class="text-[9px] text-red-500 hover:underline uppercase">[ REMOVE ]</button>
+              </div>
+            </div>
+          </div>
+          <div id="hero-error" class="hidden text-[9px] font-mono text-red-400 mt-1 uppercase"></div>
+        </div>
+
+      </div>
+
+      <div class="pt-4">
+        <button type="submit" class="accent-btn w-full py-4 bg-accent text-black hover:bg-white font-bold tracking-widest text-xs uppercase transition-all duration-300">
+          <%= project ? 'COMMIT SPEC CHANGES' : 'CREATE DEPLOYMENT TARGET' %>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</main>
+
+<script>
+  function setupUploadZone(config) {
+    const dropzone = document.getElementById(config.dropzoneId);
+    const fileInput = document.getElementById(config.fileInputId);
+    const hiddenInput = document.getElementById(config.hiddenInputId);
+    const promptDiv = document.getElementById(config.promptId);
+    const previewCard = document.getElementById(config.previewCardId);
+    const previewImg = document.getElementById(config.previewImgId);
+    const filenameSpan = document.getElementById(config.filenameId);
+    const filesizeSpan = document.getElementById(config.filesizeId);
+    const removeBtn = document.getElementById(config.removeBtnId);
+    const replaceBtn = document.getElementById(config.replaceBtnId);
+    const errorDiv = document.getElementById(config.errorId);
+    
+    // Initial display check
+    if (hiddenInput.value) {
+      const url = hiddenInput.value;
+      const name = url.split('/').pop();
+      showPreview(url, name, 'Stored');
+    }
+
+    function showError(msg) {
+      errorDiv.innerText = msg;
+      errorDiv.classList.remove('hidden');
+    }
+
+    function clearError() {
+      errorDiv.innerText = '';
+      errorDiv.classList.add('hidden');
+    }
+
+    function showPreview(url, name, size) {
+      promptDiv.classList.add('hidden');
+      previewCard.classList.remove('hidden');
+      previewImg.src = url;
+      filenameSpan.innerText = name;
+      filesizeSpan.innerText = size;
+      dropzone.classList.remove('border-dashed');
+      dropzone.classList.add('border-solid', 'border-white/20');
+    }
+
+    function clearPreview() {
+      previewCard.classList.add('hidden');
+      promptDiv.classList.remove('hidden');
+      previewImg.src = '';
+      hiddenInput.value = '';
+      fileInput.value = '';
+      dropzone.classList.remove('border-solid', 'border-white/20');
+      dropzone.classList.add('border-dashed');
+      clearError();
+    }
+
+    // Click handler
+    dropzone.addEventListener('click', (e) => {
+      if (e.target === removeBtn || e.target === replaceBtn) return;
+      fileInput.click();
+    });
+
+    // File change handler
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    // Drag events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-accent', 'bg-accent/5');
+        const label = dropzone.querySelector('.label-text');
+        if (label) label.innerText = 'DROP IMAGE HERE';
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-accent', 'bg-accent/5');
+        const label = dropzone.querySelector('.label-text');
+        if (label) label.innerText = config.defaultLabel;
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      clearError();
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (!config.allowedExtensions.includes(extension)) {
+        showError(`Unsupported file type. Please upload ${config.allowedExtensions.join(', ').toUpperCase()}.`);
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const fileData = reader.result;
+        const label = dropzone.querySelector('.label-text');
+        if (label) label.innerText = 'UPLOADING...';
+        
+        // If replacing, remove the previous file first
+        if (hiddenInput.value) {
+          fetch('/admin/media/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: hiddenInput.value })
+          }).catch(err => console.error('Failed to remove old media', err));
+        }
+
+        fetch('/admin/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fileData: fileData,
+            fileName: file.name,
+            projectId: config.projectId,
+            mediaType: config.mediaType
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            showError(data.error);
+            if (label) label.innerText = config.defaultLabel;
+          } else {
+            const sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+            hiddenInput.value = data.url;
+            showPreview(data.url, file.name, sizeStr);
+          }
+        })
+        .catch(err => {
+          showError('Upload failed. Please try again.');
+          if (label) label.innerText = config.defaultLabel;
+        });
+      };
+    }
+
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (hiddenInput.value) {
+        fetch('/admin/media/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: hiddenInput.value })
+        }).catch(err => console.error('Failed to remove media file', err));
+      }
+      clearPreview();
+    });
+
+    replaceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupUploadZone({
+      dropzoneId: 'logo-dropzone',
+      fileInputId: 'logo-file',
+      hiddenInputId: 'logo-input',
+      promptId: 'logo-prompt',
+      previewCardId: 'logo-preview-card',
+      previewImgId: 'logo-preview-img',
+      filenameId: 'logo-filename',
+      filesizeId: 'logo-filesize',
+      removeBtnId: 'logo-remove-btn',
+      replaceBtnId: 'logo-replace-btn',
+      errorId: 'logo-error',
+      defaultLabel: 'DROP LOGO HERE',
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp', 'svg'],
+      projectId: '<%= project ? project.id : "new-project" %>',
+      mediaType: 'logo'
+    });
+
+    setupUploadZone({
+      dropzoneId: 'hero-dropzone',
+      fileInputId: 'hero-file',
+      hiddenInputId: 'hero-input',
+      promptId: 'hero-prompt',
+      previewCardId: 'hero-preview-card',
+      previewImgId: 'hero-preview-img',
+      filenameId: 'hero-filename',
+      filesizeId: 'hero-filesize',
+      removeBtnId: 'hero-remove-btn',
+      replaceBtnId: 'hero-replace-btn',
+      errorId: 'hero-error',
+      defaultLabel: 'DROP HERO IMAGE HERE',
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
+      projectId: '<%= project ? project.id : "new-project" %>',
+      mediaType: 'hero'
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

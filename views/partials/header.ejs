@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" class="<%= (typeof is_teaser !== 'undefined' && is_teaser) ? 'launch-viewport-lock' : '' %> <%= (typeof settings !== 'undefined' && settings.cursor_enabled) ? 'cursor-none-engine' : '' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= site_title || 'NOVA // DROP' %></title>
+  <!-- SEO Meta -->
+  <meta name="description" content="<%= meta_desc || 'Something new is coming.' %>">
+  <!-- Open Graph -->
+  <meta property="og:title" content="<%= site_title || 'NOVA // DROP' %>">
+  <meta property="og:description" content="<%= meta_desc || 'Something new is coming.' %>">
+  <meta property="og:type" content="website">
+  
+  <!-- CDNs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: 'var(--accent-color)'
+          },
+          fontFamily: {
+            sans: 'var(--font-sans)',
+            mono: 'var(--font-mono)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body style="--accent-color: <%= active_project ? active_project.accent_color : '#00f3ff' %>; --accent-rgb: <%= active_project ? hexToRgb(active_project.accent_color) : '0, 243, 255' %>">
+  <!-- Grain Overlay -->
+  <div class="grain-overlay"></div>
+  
+  <!-- Vignette Shade Overlay -->
+  <div class="vignette-overlay"></div>
+
+  <!-- GPU Accelerated Glow Orb Wrapper -->
+  <div class="fixed pointer-events-none" id="glow-atmosphere" style="top: -600px; left: -600px; transform: translate3d(50vw, 50vh, 0); z-index: -2;">
+    <div class="w-[1200px] h-[1200px] rounded-full opacity-60" id="glow-orb-inner" style="background: radial-gradient(circle, rgba(<%= active_project ? hexToRgb(active_project.accent_color) : '0, 243, 255' %>, 0.14) 0%, rgba(3,3,3,0) 70%); transform: scale(1);"></div>
+  </div>
+  <div class="ambient-glow-loop"></div>
+
+  <!-- Canvas Particles -->
+  <% if (settings.particles_enabled) { %>
+    <canvas id="particles-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-30" style="z-index: -1;"></canvas>
+  <% } %>
+
+  <!-- Custom Cursor -->
+  <% if (settings.cursor_enabled) { %>
+    <div class="custom-cursor hidden md:block" id="custom-cursor"></div>
+  <% } %>

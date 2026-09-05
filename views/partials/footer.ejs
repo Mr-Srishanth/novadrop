@@ -1,0 +1,232 @@
+  <!-- Global UI Script hooks -->
+  <script>
+    // Check prefers-reduced-motion preference for accessibility
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 1. Mouse Interaction LERP Parallax Glow & GSAP QuickTo Cursor
+    const cursor = document.getElementById('custom-cursor');
+    const glowAtmosphere = document.getElementById('glow-atmosphere');
+    
+    let targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
+    let currentX = window.innerWidth / 2, currentY = window.innerHeight / 2;
+    
+    // GSAP quickTo for ultra-smooth 60fps cursor follow
+    let cursorXTo, cursorYTo;
+    if (cursor && !prefersReducedMotion) {
+      gsap.set(cursor, { xPercent: -50, yPercent: -50 });
+      cursorXTo = gsap.quickTo(cursor, "x", { duration: 0.2, ease: "power3.out" });
+      cursorYTo = gsap.quickTo(cursor, "y", { duration: 0.2, ease: "power3.out" });
+    }
+
+    if (cursor || glowAtmosphere) {
+      document.addEventListener('mousemove', (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        
+        if (cursorXTo && cursorYTo && !prefersReducedMotion) {
+          cursorXTo(e.clientX);
+          cursorYTo(e.clientY);
+        } else if (cursor && prefersReducedMotion) {
+          cursor.style.left = `${e.clientX}px`;
+          cursor.style.top = `${e.clientY}px`;
+        }
+      }, { passive: true });
+    }
+
+    // LERP loop for background glow tracking to create a floating organic drift
+    function lerpGlow() {
+      if (!glowAtmosphere) return;
+      if (prefersReducedMotion) {
+        glowAtmosphere.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+        return;
+      }
+      currentX += (targetX - currentX) * 0.05; // Lower value = smoother drift
+      currentY += (targetY - currentY) * 0.05;
+      
+      glowAtmosphere.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+      
+      requestAnimationFrame(lerpGlow);
+    }
+    
+    if (glowAtmosphere) {
+      lerpGlow();
+    }
+
+    // Handle cursor hover states
+    if (cursor) {
+      document.querySelectorAll('a, button, [role="button"], input, select, textarea').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          if (prefersReducedMotion) return;
+          if (el.classList.contains('accent-btn') || el.classList.contains('text-accent')) {
+            cursor.classList.add('accent-hover');
+          } else {
+            cursor.classList.add('hovered');
+          }
+        }, { passive: true });
+        el.addEventListener('mouseleave', () => {
+          cursor.classList.remove('hovered');
+          cursor.classList.remove('accent-hover');
+        }, { passive: true });
+      });
+    }
+
+    // 2. Subtle Interactive Canvas Particles
+    const canvas = document.getElementById('particles-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let mouse = { x: null, y: null, radius: 150 };
+      const dpr = window.devicePixelRatio || 1;
+
+      function resize() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.scale(dpr, dpr);
+      }
+      
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          resize();
+          init();
+        }, 150);
+      }, { passive: true });
+      
+      resize();
+
+      // Mouse tracking
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      }, { passive: true });
+      window.addEventListener('mouseout', () => {
+        mouse.x = null;
+        mouse.y = null;
+      }, { passive: true });
+
+      const particleColors = ['rgba(255,255,255,0.08)', 'rgba(var(--accent-rgb), 0.12)', 'rgba(255,255,255,0.03)'];
+
+      function init() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const count = prefersReducedMotion ? 6 : Math.min(width / 22, 50);
+        particles = [];
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: prefersReducedMotion ? 0 : (Math.random() - 0.5) * 0.35,
+            vy: prefersReducedMotion ? 0 : (Math.random() - 0.5) * 0.35,
+            size: Math.random() * 1.8 + 0.4,
+            color: particleColors[Math.floor(Math.random() * particleColors.length)]
+          });
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+          // If 10s collapse is active, gravity shifts toward center
+          if (window.targetCenterParticles && !prefersReducedMotion) {
+            let dx = (width / 2) - p.x;
+            let dy = (height / 2) - p.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 5) {
+              p.x += (dx / dist) * 1.5;
+              p.y += (dy / dist) * 1.5;
+            }
+          } else {
+            p.x += p.vx * (window.particleSpeedMultiplier || 1);
+            p.y += p.vy * (window.particleSpeedMultiplier || 1);
+
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+
+            // Push by mouse (Subtle gravitation/repulsion)
+            if (mouse.x !== null && !prefersReducedMotion) {
+              let dx = p.x - mouse.x;
+              let dy = p.y - mouse.y;
+              let dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < mouse.radius) {
+                let force = (mouse.radius - dist) / mouse.radius;
+                p.x += (dx / dist) * force * 1.2;
+                p.y += (dy / dist) * force * 1.2;
+              }
+            }
+          }
+
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      init();
+      animate();
+    }
+
+    // 3. Cinematic Easter Eggs (Only if enabled in settings)
+    const easterEggsEnabled = <%= typeof settings !== 'undefined' && settings.easter_eggs_enabled ? 'true' : 'false' %>;
+    if (easterEggsEnabled) {
+      let keyBuffer = '';
+      document.addEventListener('keydown', (e) => {
+        keyBuffer += e.key.toLowerCase();
+        if (keyBuffer.length > 20) {
+          keyBuffer = keyBuffer.slice(-20);
+        }
+        
+        if (keyBuffer.endsWith('launch') || keyBuffer.endsWith('nova')) {
+          playBeep(660, 0.4, 'sawtooth', 0.05);
+          setTimeout(() => playBeep(880, 0.6, 'sine', 0.05), 150);
+          
+          const flash = document.createElement('div');
+          flash.style.position = 'fixed';
+          flash.style.inset = '0';
+          flash.style.backgroundColor = 'rgba(var(--accent-rgb, 0, 243, 255), 0.25)';
+          flash.style.mixBlendMode = 'color-dodge';
+          flash.style.zIndex = '9999';
+          flash.style.pointerEvents = 'none';
+          document.body.appendChild(flash);
+          
+          gsap.to(flash, { 
+            opacity: 0, 
+            duration: 1, 
+            ease: 'power2.out',
+            onComplete: () => flash.remove()
+          });
+          
+          if (window.particleSpeedMultiplier !== undefined) {
+            const oldMult = window.particleSpeedMultiplier;
+            window.particleSpeedMultiplier = 5;
+            setTimeout(() => {
+              window.particleSpeedMultiplier = oldMult;
+            }, 3000);
+          }
+          
+          keyBuffer = '';
+        }
+      });
+      
+      const headline = document.getElementById('teaser-headline') || document.getElementById('reveal-name');
+      if (headline) {
+        headline.addEventListener('dblclick', () => {
+          playBeep(110, 1.2, 'triangle', 0.1);
+          gsap.fromTo(document.body, { filter: 'invert(1)' }, { filter: 'invert(0)', duration: 0.5 });
+        });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg-color: #030303;
+  --accent-rgb: 0, 243, 255;
+  --accent-color: rgb(var(--accent-rgb));
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.cursor-none-engine * {
+  cursor: none !important;
+}
+
+.cursor-none-engine input,
+.cursor-none-engine textarea,
+.cursor-none-engine select,
+.cursor-none-engine button,
+.cursor-none-engine a {
+  cursor: none !important;
+}
+
+html {
+  background-color: var(--bg-color);
+}
+
+body {
+  background-color: transparent;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  position: relative;
+}
+
+/* Modularity class for viewport lock only on active drops */
+.launch-viewport-lock, .launch-viewport-lock body {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* Film Grain Overlay */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 998;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Vignette Shade Overlay */
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 997;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(3,3,3,0.85) 100%);
+}
+
+/* Slowly Floating Ambient Loop */
+.ambient-glow-loop {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200vw;
+  height: 200vw;
+  z-index: -3;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.02) 0%, rgba(3, 3, 3, 0) 65%);
+  animation: ambientRotate 45s infinite linear;
+}
+
+@keyframes ambientRotate {
+  0% { transform: rotate(0deg) translate3d(0, 0, 0); }
+  50% { transform: rotate(180deg) translate3d(80px, -80px, 0); }
+  100% { transform: rotate(360deg) translate3d(0, 0, 0); }
+}
+
+/* Custom Premium Cursor */
+.custom-cursor {
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: fixed;
+  transform: translate3d(-50%, -50%, 0);
+  z-index: 10000;
+  pointer-events: none;
+  transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1), height 0.25s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.25s, border 0.25s;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor.hovered {
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.custom-cursor.accent-hover {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  mix-blend-mode: normal;
+}
+
+@media (max-width: 768px) {
+  .custom-cursor {
+    display: none !important;
+  }
+  * {
+    cursor: auto !important;
+  }
+}
+
+/* Premium Typography Rules */
+.text-accent {
+  color: var(--accent-color);
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.25);
+}
+
+.glow-accent-box {
+  box-shadow: 0 0 35px rgba(var(--accent-rgb), 0.12);
+}
+
+.thin-border {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(8, 8, 8, 0.55);
+  backdrop-filter: blur(20px);
+}
+
+/* Editorial Premium Button (CTA) */
+.accent-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  padding: 1.125rem 2.25rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+  border-radius: 0;
+}
+
+.accent-btn:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.15);
+  transform: translateY(-2px);
+  color: var(--accent-color);
+}
+
+.accent-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Background bloom behind countdown grid */
+.countdown-grid-glow {
+  position: absolute;
+  width: 500px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.045) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+  z-index: -1;
+  transform: translate3d(-50%, -50%, 0);
+  top: 55%;
+  left: 50%;
+}
+
+/* Numeric Countdown wrappers */
+.countdown-num-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 1.25em;
+  display: inline-block;
+  vertical-align: top;
+  padding: 0 0.15em; /* Safety margin to prevent horizontal blur/scale clipping */
+  margin: 0 -0.15em; /* Offset to keep exact original spacing */
+}
+.countdown-num {
+  line-height: 1.25em;
+  display: block;
+  text-align: center;
+}
+
+/* Easing details */
+.page-fade-transition {
+  opacity: 1;
+  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.page-fade-out {
+  opacity: 0;
+}
+
+/* Pinpoint light reveal */
+.pinpoint-glow {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 49;
+  filter: blur(1px);
+  box-shadow: 0 0 10px #ffffff, 0 0 30px var(--accent-color);
+  transform: translate3d(-50%, -50%, 0) scale(0);
+  top: 50%;
+  left: 50%;
+  display: none;
+}
+
+/* ════════════════════════════════════════
+   ADMIN FORM — Date/Time Picker Indicator
+   Make the native calendar icon visible on dark backgrounds
+   ════════════════════════════════════════ */
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.8;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: invert(1) brightness(1.5);
+}
+
+/* Admin selects — ensure dark bg for option items */
+select option {
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+/* Countdown number wrapper — safe zone for animation */
+.countdown-num-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  line-height: 1.15em;
+  height: 1.15em;
+  padding: 0 0.05em;
+  min-width: 0.7em;
+  text-align: center;
+}
+
+.countdown-num {
+  will-change: transform, opacity;
+  display: inline-block;
+}
+
+/* Hardware accelerate heavy layers */
+#custom-cursor,
+#glow-atmosphere,
+.vignette-overlay,
+.grain-overlay {
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+

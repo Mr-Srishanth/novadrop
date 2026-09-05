@@ -1,0 +1,232 @@
+<%- include('../partials/header') %>
+
+<main class="min-h-screen p-6 md:p-12 relative z-10 max-w-7xl mx-auto w-full space-y-12">
+  
+  <!-- ADMIN NAVBAR -->
+  <header class="flex justify-between items-center w-full border-b border-white/5 pb-4">
+    <div class="space-y-1">
+      <span class="text-[9px] font-mono tracking-widest text-accent uppercase">PROJECT DASHBOARD</span>
+      <h1 class="text-xl md:text-2xl font-black uppercase text-white tracking-widest">PROJECT CONTROL</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" target="_blank" class="text-xs font-mono text-gray-400 hover:text-accent uppercase">[ VIEW SITE ]</a>
+      <a href="/admin/logout" class="px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-mono uppercase tracking-wider transition-all duration-200">
+        LOGOUT
+      </a>
+    </div>
+  </header>
+
+  <!-- OVERVIEW & QUICK ACTIONS -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+    
+    <!-- LEFT: CURRENT PROJECT + ALL PROJECTS (takes 2 of 3 cols, min-w-0 prevents overflow) -->
+    <div class="lg:col-span-2 min-w-0 space-y-6">
+      <div class="thin-border p-6 bg-black/40 space-y-4">
+        <div class="flex justify-between items-center border-b border-white/5 pb-3">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-accent">CURRENT PROJECT</h2>
+          <span class="px-2 py-0.5 bg-accent/10 border border-accent/30 text-accent text-[9px] font-mono rounded-sm uppercase">
+            <%= active_project ? active_project.status : 'STANDBY' %>
+          </span>
+        </div>
+
+        <% if (active_project) { %>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2 min-w-0">
+              <div class="text-[10px] font-mono text-gray-500 uppercase">PROJECT NAME</div>
+              <div class="text-2xl font-black text-white truncate"><%= active_project.name %></div>
+              <div class="text-xs text-gray-400 italic truncate">"<%= active_project.tagline %>"</div>
+            </div>
+
+            <div class="space-y-2 min-w-0">
+              <div class="text-[10px] font-mono text-gray-500 uppercase">LAUNCH DATE & TIME (TIMEZONE: <%= active_project.timezone %>)</div>
+              <div class="text-sm font-mono text-white"><%= new Date(active_project.launch_at).toLocaleString() %></div>
+              <div class="text-[10px] font-mono text-gray-500 uppercase mt-1">PROJECT LINK</div>
+              <div class="text-xs font-mono text-accent truncate">
+                <% if (active_project.project_url && !active_project.project_url.includes('localhost') && !active_project.project_url.includes('/admin')) { %>
+                  <a href="<%= active_project.project_url %>" target="_blank" class="hover:underline"><%= active_project.project_url %></a>
+                <% } else { %>
+                  <span class="text-gray-600">NO PUBLIC LINK</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview & Simulation triggers -->
+          <div class="pt-4 border-t border-white/5 flex flex-wrap gap-3">
+            <a href="/?preview=final_countdown" target="_blank" class="px-4 py-2 bg-white/5 border border-white/10 hover:border-accent text-[10px] font-mono text-white hover:text-accent transition-all uppercase">
+              TEST COUNTDOWN
+            </a>
+            <a href="/?preview=reveal" target="_blank" class="px-4 py-2 bg-white/5 border border-white/10 hover:border-accent text-[10px] font-mono text-white hover:text-accent transition-all uppercase">
+              TEST REVEAL
+            </a>
+            <a href="/?preview=live" target="_blank" class="px-4 py-2 bg-white/5 border border-white/10 hover:border-accent text-[10px] font-mono text-white hover:text-accent transition-all uppercase">
+              VIEW LIVE SITE
+            </a>
+            <button onclick="simulateReveal()" class="px-4 py-2 bg-accent/15 border border-accent/40 text-accent hover:bg-accent hover:text-black text-[10px] font-mono uppercase tracking-wider font-bold transition-all">
+              ⚡ TEST LAUNCH
+            </button>
+          </div>
+        <% } else { %>
+          <div class="text-center py-8 text-sm text-gray-500 font-mono uppercase tracking-widest">
+            NO ACTIVE DROPS DETECTED.
+          </div>
+        <% } %>
+      </div>
+
+      <!-- PROJECT LISTING / CRUD DIRECTORY -->
+      <div class="space-y-4 min-w-0">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-white">ALL PROJECTS</h2>
+          <a href="/admin/projects/new" class="px-4 py-2 bg-accent text-black font-bold text-xs uppercase tracking-widest hover:bg-white transition-all whitespace-nowrap">
+            + ADD PROJECT
+          </a>
+        </div>
+
+        <div class="space-y-4">
+          <% projects.forEach(p => { %>
+            <div class="thin-border p-5 flex flex-col gap-4 min-w-0">
+              <!-- Project info row -->
+              <div class="space-y-2 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: <%= p.accent_color %>"></span>
+                  <h3 class="text-lg font-bold text-white uppercase truncate"><%= p.name %></h3>
+                  <span class="px-2 py-0.5 text-[9px] font-mono rounded-sm border uppercase flex-shrink-0
+                    <%= p.status === 'Coming Soon' ? 'bg-cyan-500/5 border-cyan-500/35 text-cyan-400' : '' %>
+                    <%= p.status === 'Live' ? 'bg-green-500/5 border-green-500/35 text-green-400' : '' %>
+                    <%= p.status === 'Draft' ? 'bg-yellow-500/5 border-yellow-500/35 text-yellow-400' : '' %>
+                    <%= p.status === 'Archived' ? 'bg-gray-500/5 border-gray-500/35 text-gray-400' : '' %>
+                  ">
+                    <%= p.status %>
+                  </span>
+                </div>
+                <div class="text-xs text-gray-400 leading-relaxed font-mono truncate">
+                  LAUNCH: <%= p.launch_at %> (<%= p.timezone %>) | ACCENT: <%= p.accent_color %>
+                </div>
+                <div class="text-xs text-gray-500 truncate">
+                  <% if (p.project_url && !p.project_url.includes('localhost') && !p.project_url.includes('/admin')) { %>
+                    LINK: <%= p.project_url %>
+                  <% } else { %>
+                    LINK: <span class="text-gray-700">NO PUBLIC LINK</span>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Action buttons row — flex-wrap so DELETE NEVER gets cut off -->
+              <div class="flex flex-wrap items-center gap-2">
+                <% if (!active_project || active_project.id !== p.id) { %>
+                  <button onclick="setActiveProject('<%= p.id %>')" class="px-4 py-2 border border-accent/20 text-accent hover:bg-accent/10 text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap">
+                    SET AS NEXT DROP
+                  </button>
+                <% } else { %>
+                  <span class="px-4 py-2 border border-accent/40 bg-accent/10 text-accent text-xs font-mono uppercase tracking-wider whitespace-nowrap">
+                    ★ NEXT DROP
+                  </span>
+                <% } %>
+                <a href="/admin/projects/<%= p.id %>" class="px-4 py-2 border border-white/10 hover:border-white text-xs font-mono uppercase tracking-wider text-white transition-all whitespace-nowrap text-center">
+                  EDIT PROJECT
+                </a>
+                <button onclick="deleteProject('<%= p.id %>')" class="px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap">
+                  DELETE PROJECT
+                </button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: GLOBAL TEASER SETTINGS PANEL -->
+    <div class="lg:col-span-1 lg:sticky lg:top-6 self-start">
+      <div class="thin-border p-6 bg-black/40 space-y-6">
+        <div class="border-b border-white/5 pb-3">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-pink">TEASER SETTINGS</h2>
+        </div>
+
+        <form action="/admin/settings" method="POST" class="space-y-4 text-xs font-mono">
+          <div class="space-y-1">
+            <label class="block text-[10px] text-gray-400 uppercase tracking-wider">WEBSITE NAME</label>
+            <input type="text" name="site_name" value="<%= settings.site_name %>" required class="w-full bg-black/60 border border-white/10 p-2.5 text-white focus:outline-none">
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[10px] text-gray-400 uppercase tracking-wider">MAIN TITLE</label>
+            <input type="text" name="hero_text" value="<%= settings.hero_text %>" required class="w-full bg-black/60 border border-white/10 p-2.5 text-white focus:outline-none">
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[10px] text-gray-400 uppercase tracking-wider">SUBTITLE</label>
+            <textarea name="hero_subtitle" rows="3" required class="w-full bg-black/60 border border-white/10 p-2.5 text-white focus:outline-none resize-none"><%= settings.hero_subtitle %></textarea>
+          </div>
+
+          <div class="space-y-3 pt-2 border-t border-white/5">
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] text-gray-400 uppercase tracking-wider">SHOW OLD PROJECTS</label>
+              <select name="archive_enabled" class="bg-black border border-white/10 p-1 text-white text-xs">
+                <option value="true" <%= settings.archive_enabled ? 'selected' : '' %>>ENABLED</option>
+                <option value="false" <%= !settings.archive_enabled ? 'selected' : '' %>>DISABLED</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] text-gray-400 uppercase tracking-wider">CUSTOM CURSOR</label>
+              <select name="cursor_enabled" class="bg-black border border-white/10 p-1 text-white text-xs">
+                <option value="true" <%= settings.cursor_enabled ? 'selected' : '' %>>ENABLED</option>
+                <option value="false" <%= !settings.cursor_enabled ? 'selected' : '' %>>DISABLED</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] text-gray-400 uppercase tracking-wider">PARTICLES</label>
+              <select name="particles_enabled" class="bg-black border border-white/10 p-1 text-white text-xs">
+                <option value="true" <%= settings.particles_enabled ? 'selected' : '' %>>ENABLED</option>
+                <option value="false" <%= !settings.particles_enabled ? 'selected' : '' %>>DISABLED</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] text-gray-400 uppercase tracking-wider">EASTER EGGS</label>
+              <select name="easter_eggs_enabled" class="bg-black border border-white/10 p-1 text-white text-xs">
+                <option value="true" <%= settings.easter_eggs_enabled ? 'selected' : '' %>>ENABLED</option>
+                <option value="false" <%= !settings.easter_eggs_enabled ? 'selected' : '' %>>DISABLED</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <button type="submit" class="w-full py-3 bg-pink hover:bg-white text-black font-bold tracking-widest text-xs uppercase transition-all duration-300">
+              SAVE SETTINGS
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  function deleteProject(id) {
+    if (confirm("Are you sure you want to permanently delete this project drop?")) {
+      fetch(`/admin/projects/${id}/delete`, {
+        method: 'POST'
+      }).then(res => {
+        if (res.ok) window.location.reload();
+      });
+    }
+  }
+
+  function setActiveProject(id) {
+    fetch(`/admin/projects/${id}/set-active`, {
+      method: 'POST'
+    }).then(res => {
+      if (res.ok) window.location.reload();
+    });
+  }
+
+  function simulateReveal() {
+    window.open('/?preview=final_countdown', '_blank');
+  }
+</script>
+
+<%- include('../partials/footer') %>
